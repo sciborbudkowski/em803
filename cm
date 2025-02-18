@@ -1,0 +1,8 @@
+#!/bin/bash
+
+rm -rfv build
+mkdir -v build
+cd build
+cmake ..
+time make -j$(nproc) VERBOSE=0 CXXFLAGS="-fmax-errors=5"
+cd ..

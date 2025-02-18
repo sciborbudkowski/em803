@@ -1,0 +1,65 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/assets/embedded",
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/include/datastructs",
+                "${workspaceFolder}/include/emulators",
+                "${workspaceFolder}/include/emulators/common",
+                "${workspaceFolder}/include/emulators/common/interfaces",
+                "${workspaceFolder}/include/emulators/i8080",
+                "${workspaceFolder}/include/emulators/Z80",
+                "${workspaceFolder}/include/helpers",
+                "${workspaceFolder}/include/lib",
+                "${workspaceFolder}/include/raylib",
+                "${workspaceFolder}/include/raylib/ui",
+                "${workspaceFolder}/include/ui",
+                "/usr/include/qt6",
+                "/usr/include/qt6/QtWidgets",
+                "/usr/include/qt6/QtGui",
+                "/usr/include/qt6/QtCore",
+                "/usr/lib/qt6/mkspecs/linux-g++"
+            ],
+            "defines": [
+                "QT_WIDGETS_LIB",
+                "QT_GUI_LIB",
+                "QT_CORE_LIB",
+                "_REENTRANT"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/opt/qt@6/include/QtWidgets",
+                "/usr/local/opt/qt@6/include/QtCore",
+                "/usr/local/opt/qt@6/include/QtGui",
+                "/usr/local/opt/qt@6/include",
+                "/usr/local/opt/qt@6/lib/QtCore.framework/Headers",
+                "/usr/local/opt/qt@6/lib/QtGui.framework/Headers",
+                "/usr/local/opt/qt@6/lib/QtWidgets.framework/Headers"
+            ],
+            "defines": [
+                "QT_WIDGETS_LIB",
+                "QT_GUI_LIB",
+                "QT_CORE_LIB",
+                "_REENTRANT"
+            ],
+            "compilerPath": "/usr/bin/clang++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-x64",
+            "macFrameworkPath": [
+                "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
+            ]
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_em803_FILE /home/scibor/em803/build/em803)
+set(__QT_DEPLOY_TARGET_em803_TYPE EXECUTABLE)

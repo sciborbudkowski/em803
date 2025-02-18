@@ -1,0 +1,12 @@
+#!/bin/bash
+
+rm -rfv build
+mkdir -v build
+cd build
+cmake -G Ninja ..
+#time make -j$(nproc) VERBOSE=0
+time ninja
+cd ..
+if [ "$1" == "-r" ]; then
+	build/em802
+fi
