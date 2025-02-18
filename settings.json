@@ -1,0 +1,8 @@
+{
+    "workbench.colorTheme": "Default Dark+",
+    "workbench.colorCustomizations": {
+        "editor.background": "#1E1E1E",
+        "editor.lineHighlightBackground": "#282828",
+        "editor.lineHighlightBorder": "#282828"
+    }
+} 

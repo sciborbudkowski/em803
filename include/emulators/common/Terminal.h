@@ -8,19 +8,7 @@
 
 #include "ITerminalAccess.h"
 #include "RaylibWrapper.h"
-
-#ifndef TERMINAL_CHARS_WIDTH
-#define TERMINAL_CHARS_WIDTH 80
-#endif
-#ifndef TERMINAL_CHARS_HEIGHT
-#define TERMINAL_CHARS_HEIGHT 25
-#endif
-#ifndef TERMINAL_PIXELS_WIDTH
-#define TERMINAL_PIXELS_WIDTH 800
-#endif
-#ifndef TERMINAL_PIXELS_HEIGHT
-#define TERMINAL_PIXELS_HEIGHT 600
-#endif
+#include "Properties.h"
 
 class Terminal : public ITerminalAccess {
     protected:
@@ -43,8 +31,7 @@ class Terminal : public ITerminalAccess {
             buffer.resize(heightChars, std::string(widthChars, ' '));
         }
 
-        #pragma region ITerminalAccess
-
+        #pragma region --- ITerminalAccess methods ---
         char inputChar() const override { return lastChar; }
 
         void outputChar(char ch) override {
@@ -72,12 +59,79 @@ class Terminal : public ITerminalAccess {
             isBusy = false;
         }
 
-        void outputString(const char* format, ...) const override {
-            
+        void outputString(const char* format, ...) override {
+            isBusy = true;
+            va_list args;
+            va_start(args, format);
+            int size = std::vsnprintf(nullptr, 0, format, args);
+            va_end(args);
+
+            if(size > 0) return;
+
+            std::vector<char> tempBuffer(size);
+            va_start(args, format);
+            std::vsnprintf(tempBuffer.data(), size, format, args);
+            va_end(args);
+
+            for(char ch : tempBuffer) {
+                if(ch == '\n') break;
+                outputChar(ch);
+            }
+            isBusy = false;
         }
 
+        void backspace() override {
+            isBusy = true;
+            if(cursorX > 0) {
+                cursorX--;
+            } else if(cursorY > 0) {
+                cursorY--;
+                cursorX = widthChars - 1;
+                buffer[cursorY][cursorX] = ' ';
+            }
+            isBusy = false;
+        }
+        
+        void clear() override {
+            isBusy = true;
+            buffer.clear();
+            buffer.resize(heightChars, std::string(widthChars, ' '));
+            cursorX = 0;
+            cursorY = 0;
+            isBusy = false;
+        }
+        
+        std::vector<std::string> getBuffer() const override { return buffer; }
+
+        std::pair<int, int> getCursorPosition() const override { return std::pair<int, int>(cursorX, cursorY); }
+
+        void setCursorPosition(std::pair<int, int> position) override {
+            cursorX = position.first;
+            cursorY = position.second;
+        }
+
+        std::pair<int, int> getCharDimension() const override { return std::pair<int, int>(widthChars, heightChars); }
+
+        std::pair<int, int> getPixelDimension() const override { return std::pair<int, int>(widthPixels, heightPixels); }
+
+        void setStatus(bool status) override { isBusy = status; }
+
+        bool getStatus() const override { return isBusy; }
         #pragma endregion
 
+        #pragma region --- Terminal methods ---
+        void render() {
+            float offsetX = 20, offsetY = 20;
+
+            DrawRectangle(offsetX, offsetY, widthPixels, heightPixels, TERMINAL_BACKGROUND_COLOR);
+            for(int y=0; y<widthChars; y++) {
+                DrawTextEx(font, buffer[y].c_str(), Vector2{offsetX, offsetY + y*heightOfCharInPixels}, fontSize, 1, TERMINAL_FOREGROUND_COLOR);
+            }
+
+            DrawRectangle(offsetX + cursorX*widthOfCharInPixels, cursorY + cursorY*heightOfCharInPixels, widthOfCharInPixels, heightOfCharInPixels, TERMINAL_FOREGROUND_COLOR);
+        }
+        #pragma endregion
+    
     private:
         void updateScalling() {
             widthOfCharInPixels = widthPixels / widthChars;

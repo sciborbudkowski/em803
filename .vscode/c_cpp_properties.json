@@ -31,13 +31,26 @@
             ],
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
-            "cppStandard": "c++17",
+            "cppStandard": "c++23",
             "intelliSenseMode": "linux-gcc-x64"
         },
         {
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/assets/embedded",
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/include/datastructs",
+                "${workspaceFolder}/include/emulators",
+                "${workspaceFolder}/include/emulators/common",
+                "${workspaceFolder}/include/emulators/common/interfaces",
+                "${workspaceFolder}/include/emulators/i8080",
+                "${workspaceFolder}/include/emulators/Z80",
+                "${workspaceFolder}/include/helpers",
+                "${workspaceFolder}/include/lib",
+                "${workspaceFolder}/include/raylib",
+                "${workspaceFolder}/include/raylib/ui",
+                "${workspaceFolder}/include/ui",
                 "/usr/local/opt/qt@6/include/QtWidgets",
                 "/usr/local/opt/qt@6/include/QtCore",
                 "/usr/local/opt/qt@6/include/QtGui",
@@ -54,7 +67,7 @@
             ],
             "compilerPath": "/usr/bin/clang++",
             "cStandard": "c17",
-            "cppStandard": "c++17",
+            "cppStandard": "c++23",
             "intelliSenseMode": "macos-clang-x64",
             "macFrameworkPath": [
                 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"

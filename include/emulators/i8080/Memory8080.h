@@ -9,9 +9,16 @@
 #include <stdexcept>
 
 class Memory8080 : public Memory8080AccessInterface {
+    private:
+        size_t size;
+
+        std::vector<uint8_t> memory;
+        
     public:
-        Memory8080(size_t size = 0x10000) : size(size), memory(size, 0x00) { clear(); };
+        Memory8080(size_t size = DEFAULT_SIZE) : size(size), memory(size, 0x00) { clear(); };
         ~Memory8080() = default;
+
+        static constexpr size_t DEFAULT_SIZE = 0x10000;
 
         void clear() { memory = std::vector<uint8_t>(size, 0x00); };
 
@@ -39,9 +46,15 @@ class Memory8080 : public Memory8080AccessInterface {
             return true;
         }
 
+        #pragma region Memory8080AccessInterface
         uint8_t getByte(uint16_t address) const override { return memory[address]; }
+        void setByte(uint16_t address, uint8_t value) override { memory[address] = value; }
 
         uint16_t getWord(uint16_t address) const override { return Calcs::makeWord(memory[address], memory[address + 1]); }
+        void setWord(uint16_t address, uint16_t value) override { 
+            memory[address] = value & 0xFF;
+            memory[address + 1] = (value >> 8) & 0xFF;
+        }
 
         std::vector<uint8_t> getBytesBlock(uint16_t address, size_t size) const override {
             if(address >= memory.size()) return {};
@@ -51,9 +64,5 @@ class Memory8080 : public Memory8080AccessInterface {
         }
 
         size_t getSize() const override { return size; }
-
-    private:
-        size_t size;
-
-        std::vector<uint8_t> memory;
+        #pragma endregion
 };
