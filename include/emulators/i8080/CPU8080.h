@@ -1,13 +1,5 @@
 #pragma once
 
-#include <chrono>
-#include <cstdint>
-#include <deque>
-#include <iomanip>
-#include <iostream>
-#include <map>
-#include <thread>
-
 #include "ALU8080.h"
 #include "Calcs.h"
 #include "BusyWait.h"
@@ -17,8 +9,19 @@
 #include "Terminal.h"
 #include "ITerminalAccess.h"
 #include "Timings8080.h"
+#include "IRegisters8080.h"
+#include "IMemory8080.h"
 
-class CPU8080 final {
+#include <chrono>
+#include <cstdint>
+#include <deque>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <thread>
+#include <vector>
+
+class CPU8080 final : public IRegisters8080, public IMemory8080 {
     private:
         Registers8080 regs;
         Memory8080 mem;
@@ -31,11 +34,21 @@ class CPU8080 final {
         const uint16_t CPM_CCP   = 0xD400;
         const uint16_t STACK     = 0xEF00;
 
+        const char* welcomeMessage = "Intel 8080 Emulator\n";
+
         /* Measure few things, will be disabled later */
         unsigned int executedInstructions = 0;
         int currentTimer = 0, totalSpeeding = 0, lastCycleTime = 0;
         std::deque<std::string> lastIntructions;
         const int lastInstructionsStoredCount = 64;
+
+        void setupMeasure() {
+            currentTimer = 0;
+            executedInstructions = 0;
+            totalSpeeding = 0;
+            lastCycleTime = 0;
+            lastIntructions.clear();
+        }
 
     public:
         CPU8080(ITerminalAccess& terminal, size_t memorySize = Memory8080::DEFAULT_SIZE)
@@ -53,6 +66,17 @@ class CPU8080 final {
         }
         void stop() { running = false; }
 
+        void reset() {
+            regs.reset();
+            mem.clear();
+            ports.reset();
+            ports.outString(welcomeMessage);
+            running = false;
+            turbo = false;
+
+            setupMeasure();
+        }
+
         bool isTurbo() const { return turbo; }
         void setTurbo(bool value) { turbo = value; }
 
@@ -61,6 +85,13 @@ class CPU8080 final {
 
             uint16_t opcode = mem.read(regs.PC++);
             decodeAndExecute(opcode);
+        }
+
+        void run() {
+            running = true;
+            while(running) {
+                step();
+            }
         }
 
         void push(int16_t value) {
@@ -191,11 +222,11 @@ class CPU8080 final {
                 // POP PSW
                 case 0xF1: {
                         uint16_t value = pop();
-                        regs.setFlag(Registers8080::FLAG::AUX_CARRY, (value >> 8) & 0xFF);
-                        regs.setFlag(Registers8080::FLAG::ZERO, (value >> 6) & 1);
-                        regs.setFlag(Registers8080::FLAG::SIGN, (value >> 7) & 1);
-                        regs.setFlag(Registers8080::FLAG::PARITY, (value >> 2) & 1);
-                        regs.setFlag(Registers8080::FLAG::CARRY, value & 1);
+                        regs.setFlag(i8080::FLAG::AUX_CARRY, (value >> 8) & 0xFF);
+                        regs.setFlag(i8080::FLAG::ZERO, (value >> 6) & 1);
+                        regs.setFlag(i8080::FLAG::SIGN, (value >> 7) & 1);
+                        regs.setFlag(i8080::FLAG::PARITY, (value >> 2) & 1);
+                        regs.setFlag(i8080::FLAG::CARRY, value & 1);
                         asmInst = "POP PSW";
                         break;
                     }
@@ -227,7 +258,7 @@ class CPU8080 final {
                 case 0xCA: { // JZ addr
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC + 1) << 8);
                     regs.PC += 2;
-                    if(regs.getFlag(Registers8080::ZERO)) {
+                    if(regs.getFlag(i8080::ZERO)) {
                         regs.PC = addr;
                     }
                     asmInst = "JZ [" + Calcs::hex16(addr) + "]";
@@ -236,7 +267,7 @@ class CPU8080 final {
 
                 case 0xC2: { // JNZ addr
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(!regs.getFlag(Registers8080::ZERO)) {
+                    if(!regs.getFlag(i8080::ZERO)) {
                         regs.PC = addr;
                     } else {
                         regs.PC += 2;
@@ -247,7 +278,7 @@ class CPU8080 final {
 
                 case 0xD2: { // JNC addr
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(!regs.getFlag(Registers8080::CARRY)) {
+                    if(!regs.getFlag(i8080::CARRY)) {
                         regs.PC = addr;
                     } else {
                         regs.PC += 2;
@@ -258,7 +289,7 @@ class CPU8080 final {
 
                 case 0xDA: { // JC addr
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(regs.getFlag(Registers8080::CARRY)) {
+                    if(regs.getFlag(i8080::CARRY)) {
                         regs.PC = addr;
                     } else {
                         regs.PC += 2;
@@ -269,7 +300,7 @@ class CPU8080 final {
 
                 case 0xE2: { // JPO addr
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(!regs.getFlag(Registers8080::PARITY)) {
+                    if(!regs.getFlag(i8080::PARITY)) {
                         regs.PC = addr;
                     } else {
                         regs.PC += 2;
@@ -280,7 +311,7 @@ class CPU8080 final {
 
                 case 0xEA: { // JPE addr
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(regs.getFlag(Registers8080::PARITY)) {
+                    if(regs.getFlag(i8080::PARITY)) {
                         regs.PC = addr;
                     } else {
                         regs.PC += 2;
@@ -291,7 +322,7 @@ class CPU8080 final {
 
                 case 0xFA: { // JM addr
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(regs.getFlag(Registers8080::SIGN)) {
+                    if(regs.getFlag(i8080::SIGN)) {
                         regs.PC = addr;
                     } else {
                         regs.PC += 2;
@@ -303,7 +334,7 @@ class CPU8080 final {
                 // ---conditional calls ---
                 case 0xCC: { // CZ
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(regs.getFlag(Registers8080::ZERO)) {
+                    if(regs.getFlag(i8080::ZERO)) {
                         regs.PC += 2;
                         push(regs.PC);
                         regs.PC = addr;
@@ -316,7 +347,7 @@ class CPU8080 final {
 
                 case 0xC4: { // CNZ
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(!regs.getFlag(Registers8080::ZERO)) {
+                    if(!regs.getFlag(i8080::ZERO)) {
                         regs.PC += 2;
                         push(regs.PC);
                         regs.PC = addr;
@@ -329,7 +360,7 @@ class CPU8080 final {
 
                 case 0xDC: { // CC
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(regs.getFlag(Registers8080::CARRY)) {
+                    if(regs.getFlag(i8080::CARRY)) {
                         regs.PC += 2;
                         push(regs.PC);
                         regs.PC = addr;
@@ -342,7 +373,7 @@ class CPU8080 final {
 
                 case 0xD4: { // CNC
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(!regs.getFlag(Registers8080::CARRY)) {
+                    if(!regs.getFlag(i8080::CARRY)) {
                         regs.PC += 2;
                         push(regs.PC);
                         regs.PC = addr;
@@ -355,7 +386,7 @@ class CPU8080 final {
 
                 case 0xEC: { // CPE
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(regs.getFlag(Registers8080::PARITY)) {
+                    if(regs.getFlag(i8080::PARITY)) {
                         regs.PC += 2;
                         push(regs.PC);
                         regs.PC = addr;
@@ -368,7 +399,7 @@ class CPU8080 final {
 
                 case 0xE4: { // CPO
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(!regs.getFlag(Registers8080::PARITY)) {
+                    if(!regs.getFlag(i8080::PARITY)) {
                         regs.PC += 2;
                         push(regs.PC);
                         regs.PC = addr;
@@ -381,7 +412,7 @@ class CPU8080 final {
 
                 case 0xF4: { // CP
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(!regs.getFlag(Registers8080::SIGN)) {
+                    if(!regs.getFlag(i8080::SIGN)) {
                         regs.PC += 2;
                         push(regs.PC);
                         regs.PC = addr;
@@ -394,7 +425,7 @@ class CPU8080 final {
 
                 case 0xFC: { // CM
                     uint16_t addr = mem.read(regs.PC) | (mem.read(regs.PC+1) << 8);
-                    if(regs.getFlag(Registers8080::SIGN)) {
+                    if(regs.getFlag(i8080::SIGN)) {
                         regs.PC += 2;
                         push(regs.PC);
                         regs.PC = addr;
@@ -520,8 +551,8 @@ class CPU8080 final {
 
                 // -- RLC --
                 case 0x07:
-                    regs.setFlag(Registers8080::CARRY, (regs.A & 0x80) != 0);
-                    regs.A = (regs.A << 1) | regs.getFlag(Registers8080::CARRY);
+                    regs.setFlag(i8080::CARRY, (regs.A & 0x80) != 0);
+                    regs.A = (regs.A << 1) | regs.getFlag(i8080::CARRY);
                     asmInst = "RLC";
                     break;
 
@@ -530,7 +561,7 @@ class CPU8080 final {
                         uint32_t result = regs.HL() + regs.BC();
                         regs.H = (result >> 8) & 0xFF;
                         regs.L = result & 0xFF;
-                        regs.setFlag(Registers8080::CARRY, result > 0xFFFF);
+                        regs.setFlag(i8080::CARRY, result > 0xFFFF);
                         asmInst = "DAD B";
                     }
                     break;
@@ -552,8 +583,8 @@ class CPU8080 final {
 
                 // --- RRC ---
                 case 0x0F:
-                    regs.setFlag(Registers8080::CARRY, (regs.A & 1) != 0);
-                    regs.A = (regs.A >> 1) | (regs.getFlag(Registers8080::CARRY) << 7);
+                    regs.setFlag(i8080::CARRY, (regs.A & 1) != 0);
+                    regs.A = (regs.A >> 1) | (regs.getFlag(i8080::CARRY) << 7);
                     asmInst = "RRC";
                     break;
 
@@ -579,8 +610,8 @@ class CPU8080 final {
 
                 // --- RAL ---
                 case 0x17: {
-                        uint8_t oldCY = regs.getFlag(Registers8080::CARRY);
-                        regs.setFlag(Registers8080::CARRY, (regs.A & 0x80) != 0);
+                        uint8_t oldCY = regs.getFlag(i8080::CARRY);
+                        regs.setFlag(i8080::CARRY, (regs.A & 0x80) != 0);
                         regs.A = (regs.A << 1) | oldCY;
                         asmInst = "RAL";
                         break;
@@ -591,7 +622,7 @@ class CPU8080 final {
                         uint32_t result = regs.HL() + regs.DE();
                         regs.H = (result >> 8) & 0xFF;
                         regs.L = result & 0xFF;
-                        regs.setFlag(Registers8080::CARRY, result > 0XFFFF);
+                        regs.setFlag(i8080::CARRY, result > 0XFFFF);
                         asmInst = "DAD D";
                         break;
                     }
@@ -611,8 +642,8 @@ class CPU8080 final {
 
                 // --- RAR ---
                 case 0x1F: {
-                        uint8_t oldCY = regs.getFlag(Registers8080::CARRY);
-                        regs.setFlag(Registers8080::CARRY, (regs.A & 1) != 0);
+                        uint8_t oldCY = regs.getFlag(i8080::CARRY);
+                        regs.setFlag(i8080::CARRY, (regs.A & 1) != 0);
                         regs.A = (regs.A >> 1) | (oldCY << 7);
                         asmInst = "RAR";
                         break;
@@ -649,13 +680,13 @@ class CPU8080 final {
 
                 // --- DAA ---
                 case 0x27: {
-                        if((regs.A & 0x0F) > 9 || regs.getFlag(Registers8080::AUX_CARRY)) {
+                        if((regs.A & 0x0F) > 9 || regs.getFlag(i8080::AUX_CARRY)) {
                             regs.A += 6;
-                            regs.setFlag(Registers8080::AUX_CARRY, 1);
+                            regs.setFlag(i8080::AUX_CARRY, 1);
                         }
-                        if((regs.A >> 4) > 9 || regs.getFlag(Registers8080::CARRY)) {
+                        if((regs.A >> 4) > 9 || regs.getFlag(i8080::CARRY)) {
                             regs.A += 0x60;
-                            regs.setFlag(Registers8080::CARRY, 1);
+                            regs.setFlag(i8080::CARRY, 1);
                         }
                         asmInst = "DAA";
                         break;
@@ -717,7 +748,7 @@ class CPU8080 final {
                         uint32_t result = regs.HL() + regs.HL();
                         regs.H = (result >> 8) & 0xFF;
                         regs.L = result & 0xFF;
-                        regs.setFlag(Registers8080::CARRY, result > 0xFFFF);
+                        regs.setFlag(i8080::CARRY, result > 0xFFFF);
                         asmInst = "DAD H";
                         break;
                     }
@@ -798,14 +829,14 @@ class CPU8080 final {
                     }
 
                 // --- STC ---
-                case 0x37: regs.setFlag(Registers8080::CARRY, 1); asmInst = "STC"; break;
+                case 0x37: regs.setFlag(i8080::CARRY, 1); asmInst = "STC"; break;
 
                 // --- DAD SP ---
                 case 0x39: {
                         uint32_t result = regs.HL() + regs.SP;
                         regs.H = (result >> 8) & 0xFF;
                         regs.L = result & 0xFF;
-                        regs.setFlag(Registers8080::CARRY, result > 0xFFFF);
+                        regs.setFlag(i8080::CARRY, result > 0xFFFF);
                         asmInst = "DAD SP";
                         break;
                     }
@@ -827,7 +858,7 @@ class CPU8080 final {
                 case 0x3d: regs.A--; ALU8080::dec(regs.A, regs.F); asmInst = "DCR A"; break;
 
                 // --- CMC ---
-                case 0x3f: regs.setFlag(Registers8080::CARRY, !regs.getFlag(Registers8080::CARRY)); asmInst = "CMC"; break;
+                case 0x3f: regs.setFlag(i8080::CARRY, !regs.getFlag(i8080::CARRY)); asmInst = "CMC"; break;
 
                 // --- MOV M, A ---
                 case 0x77: mem.write(regs.HL(), regs.A); asmInst = "MOV M, A"; break;
@@ -864,7 +895,7 @@ class CPU8080 final {
 
                 // --- RNZ ---
                 case 0xC0:
-                    if(!regs.getFlag(Registers8080::ZERO)) {
+                    if(!regs.getFlag(i8080::ZERO)) {
                         regs.PC = pop();
                     }
                     asmInst = "RNZ";
@@ -891,15 +922,15 @@ class CPU8080 final {
                 case 0xFF: push(regs.PC); regs.PC = 0x38; asmInst = "RST 7"; break;
 
                 // --- RZ ---
-                case 0xC8: if(regs.getFlag(Registers8080::ZERO)) regs.PC = pop(); asmInst = "RZ"; break;
-                case 0xD0: if(!regs.getFlag(Registers8080::CARRY)) regs.PC = pop(); asmInst = "RNC"; break;
-                case 0xD8: if(regs.getFlag(Registers8080::CARRY)) regs.PC = pop(); asmInst = "RC"; break;
+                case 0xC8: if(regs.getFlag(i8080::ZERO)) regs.PC = pop(); asmInst = "RZ"; break;
+                case 0xD0: if(!regs.getFlag(i8080::CARRY)) regs.PC = pop(); asmInst = "RNC"; break;
+                case 0xD8: if(regs.getFlag(i8080::CARRY)) regs.PC = pop(); asmInst = "RC"; break;
 
                 // --- ACI d8 ---
                 case 0xCE: {
                         uint8_t data = mem.read(regs.PC++);
                         uint8_t flags = regs.F;
-                        uint8_t carry = (flags & Registers8080::CARRY) ? 1: 0;
+                        uint8_t carry = (flags & i8080::CARRY) ? 1: 0;
                         regs.A = ALU8080::add(regs.A, data + carry, flags);
                         regs.F = flags;
                         asmInst = "ACI " + Calcs::hex8(data);
@@ -925,7 +956,7 @@ class CPU8080 final {
                 case 0xDE: {
                         uint8_t data = mem.read(regs.PC++);
                         uint8_t flags = regs.F;
-                        uint8_t carry = (flags & Registers8080::CARRY) ? 1: 0;
+                        uint8_t carry = (flags & i8080::CARRY) ? 1: 0;
                         regs.A = ALU8080::sub(regs.A, data + carry, flags);
                         regs.F = flags;
                         asmInst = "SBI " + Calcs::hex8(data);
@@ -933,7 +964,7 @@ class CPU8080 final {
                     }
 
                 // --- RPO ---
-                case 0xE0: if(!regs.getFlag(Registers8080::PARITY)) regs.PC = pop(); asmInst = "RPO"; break;
+                case 0xE0: if(!regs.getFlag(i8080::PARITY)) regs.PC = pop(); asmInst = "RPO"; break;
 
                 // --- XTHL ---
                 case 0xE3: {
@@ -947,7 +978,7 @@ class CPU8080 final {
                     break;
 
                 // --- RPE ---
-                case 0xE8: if(regs.getFlag(Registers8080::PARITY)) regs.PC = pop(); asmInst = "RPE"; break;
+                case 0xE8: if(regs.getFlag(i8080::PARITY)) regs.PC = pop(); asmInst = "RPE"; break;
 
                 // --- PCHL ---
                 case 0xE9: regs.PC = regs.HL(); asmInst = "PCHL"; break;
@@ -965,12 +996,12 @@ class CPU8080 final {
                     }
 
                 // --- RP ---
-                case 0xF0: if(!regs.getFlag(Registers8080::SIGN)) regs.PC = pop(); asmInst = "RP"; break;
+                case 0xF0: if(!regs.getFlag(i8080::SIGN)) regs.PC = pop(); asmInst = "RP"; break;
 
                 // --- JP addr ---
                 case 0xF2: {
                         uint16_t addr = Calcs::makeWord(mem.read(regs.PC++), mem.read(regs.PC++));
-                        if(!regs.getFlag(Registers8080::SIGN)) regs.PC = addr;
+                        if(!regs.getFlag(i8080::SIGN)) regs.PC = addr;
                         asmInst = "JP [" + Calcs::hex16(addr) + "]";
                         break;
                     }
@@ -982,7 +1013,7 @@ class CPU8080 final {
                 case 0xFB: interruptsEnabled = true; asmInst = "EI"; break;
 
                 // --- RM ---
-                case 0xF8: if(regs.getFlag(Registers8080::SIGN)) regs.PC = pop(); asmInst = "RM"; break;
+                case 0xF8: if(regs.getFlag(i8080::SIGN)) regs.PC = pop(); asmInst = "RM"; break;
 
                 // --- SPHL ---
                 case 0xF9: regs.SP = regs.HL(); asmInst = "SPHL"; break;
@@ -1046,4 +1077,76 @@ class CPU8080 final {
                     << std::endl;
             #endif
         }
+
+        void dumpStateToConsole() {
+            std::cout << "CPU: (8080)" << std::endl;
+            std::cout << "----------------------------------------" << std::endl;
+            std::cout << "Registers: " << std::endl;
+            std::cout << "A:  " << Calcs::hex8(regs.A) << std::endl;
+            std::cout << "B:  " << Calcs::hex8(regs.B) << std::endl;
+            std::cout << "C:  " << Calcs::hex8(regs.C) << std::endl;
+            std::cout << "D:  " << Calcs::hex8(regs.D) << std::endl;
+            std::cout << "E:  " << Calcs::hex8(regs.E) << std::endl;
+            std::cout << "H:  " << Calcs::hex8(regs.H) << std::endl;
+            std::cout << "L:  " << Calcs::hex8(regs.L) << std::endl;
+            std::cout << "PC: " << Calcs::hex16(regs.PC) << std::endl;
+            std::cout << "SP: " << Calcs::hex16(regs.SP) << std::endl;
+            std::cout << "----------------------------------------" << std::endl;
+            std::cout << "Flags: " << std::endl;
+            std::cout << "Z:  " << regs.getFlag(i8080::ZERO) << std::endl;
+            std::cout << "S:  " << regs.getFlag(i8080::SIGN) << std::endl;
+            std::cout << "P:  " << regs.getFlag(i8080::PARITY) << std::endl;
+            std::cout << "CY: " << regs.getFlag(i8080::CARRY) << std::endl;
+            std::cout << "AC: " << regs.getFlag(i8080::AUX_CARRY) << std::endl;
+        }
+
+        void testOpcodes() {
+            #ifdef DEBUG_SHOW_CONSOLE_MESSAGES
+                std::cout << "Testing Intel 8080 CPU opcodes..." << std::endl;
+                for(uint16_t opcode=0; opcode<=0xFF; opcode++) {
+                    regs.reset();
+                    running = true;
+                    mem.write(0x1000, opcode);
+                    mem.write(0x1001, 0x00);
+                    mem.write(0x1002, 0x00);
+                    regs.PC = 0x1000;
+
+                    std::cout << "TEST> opcode 0x" << std::hex << opcode << " -> ";
+                    try {
+                        step();
+                        std::cout << "OK" << std::endl;
+                    } catch(const std::exception& e) {
+                        std::cout << "FAILED: " << e.what() << std::endl;
+                    }
+                }
+                std::cout << "Testing opcodes done." << std::endl;
+            #endif
+        }
+
+        #pragma region --- IRegisters8080 methods ---
+        uint8_t A() const override { return regs.A; }
+        uint8_t B() const override { return regs.B; }
+        uint8_t C() const override { return regs.C; }
+        uint8_t D() const override { return regs.D; }
+        uint8_t E() const override { return regs.E; }
+        uint8_t H() const override { return regs.H; }
+        uint8_t L() const override { return regs.L; }
+
+        uint16_t HL() const override { return regs.HL(); }
+        uint16_t BC() const override { return regs.BC(); }
+        uint16_t DE() const override { return regs.DE(); }
+
+        uint16_t PC() const override { return regs.PC; }
+        uint16_t SP() const override { return regs.SP; }
+
+        bool flag(i8080::FLAG flag) const override { return regs.getFlag(flag); }
+        #pragma endregion
+
+        #pragma region --- IMemory8080 methods ---
+        uint8_t getByte(uint16_t address) const override { return mem.getByte(address); }
+        uint16_t getWord(uint16_t address) const override { return mem.getWord(address); }
+        std::vector<uint8_t> getBytesBlock(uint16_t address, size_t size) const override { return mem.getBytesBlock(address, size); }
+        size_t getSize() const override { return mem.getSize(); }
+        bool loadProgram(uint16_t startAddress, std::vector<uint8_t>& buffer) override { return mem.loadProgram(startAddress, buffer); }
+        #pragma endregion
 };

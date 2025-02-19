@@ -21,4 +21,5 @@ class ITerminalAccess {
         virtual std::pair<int, int> getPixelDimension() const { return {0, 0}; }
         virtual void setStatus(bool status) {}
         virtual bool getStatus() const { return false; }
+        virtual void render() const {};
 };

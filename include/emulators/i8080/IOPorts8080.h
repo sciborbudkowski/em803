@@ -2,7 +2,9 @@
 
 #include <array>
 #include <cstdint>
+#include <iostream>
 #include <stdexcept>
+#include <string_view>
 #include "ITerminalAccess.h"
 
 class IOPorts8080 {
@@ -14,7 +16,10 @@ class IOPorts8080 {
         IOPorts8080(ITerminalAccess* terminal) : terminal(terminal) { reset(); }
         ~IOPorts8080() = default;
 
-        void reset() { ports.fill(0); }
+        void reset() {
+            ports.fill(0);
+            terminal->clear();
+        }
 
         void out(uint8_t port, uint8_t value) {
             switch(port) {
@@ -31,6 +36,13 @@ class IOPorts8080 {
                     break;
                 default:
                     ports[port] = value;
+            }
+        }
+
+        void outString(const char* outString) {
+            std::string_view stringView = outString;
+            for(char ch : stringView) {
+                out(0x01, ch);
             }
         }
 

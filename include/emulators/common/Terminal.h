@@ -117,10 +117,8 @@ class Terminal : public ITerminalAccess {
         void setStatus(bool status) override { isBusy = status; }
 
         bool getStatus() const override { return isBusy; }
-        #pragma endregion
 
-        #pragma region --- Terminal methods ---
-        void render() {
+        void render() const override {
             float offsetX = 20, offsetY = 20;
 
             DrawRectangle(offsetX, offsetY, widthPixels, heightPixels, TERMINAL_BACKGROUND_COLOR);

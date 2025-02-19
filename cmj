@@ -8,5 +8,5 @@ cmake -G Ninja ..
 time ninja
 cd ..
 if [ "$1" == "-r" ]; then
-	build/em802
+	build/em803
 fi

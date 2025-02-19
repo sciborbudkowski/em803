@@ -5,6 +5,7 @@
 #include "AddMachineDialog.h"
 #include "AssetLoader.h"
 #include "RaylibWrapper.h"
+#include "EmulatorWindow8080.h"
 
 #include <QApplication>
 #include <QMainWindow>
@@ -100,9 +101,11 @@ class MainWindow : public QMainWindow {
                 switch(selectedMachine.getProcessorType()) {
                     case CPUType::I8080: {
                         std::cout << "Creating emulator" << std::endl;
-                        // Emulator8080* emulator = new Emulator8080(selectedMachine.getMemorySize());
+                        Terminal term = Terminal(font);
+                        EmulatorWindow8080 emulator = EmulatorWindow8080(term, 0x10000);
+                        
                         std::cout << "Show emulator window" << std::endl;
-                        // emulator->run();
+                        emulator.run();
                     }
                     break;
                     
@@ -110,8 +113,6 @@ class MainWindow : public QMainWindow {
                         std::cout << "Starting of " << MachineProfile::getCPUName(selectedMachine.getProcessorType()).toStdString() << " not implemented yet!" << std::endl;
                         break;
                 }
-
-                //EmulatorWindow* emulatorWindow = new EmulatorWindow(this);
 
                 this->show();
             } else {

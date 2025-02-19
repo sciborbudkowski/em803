@@ -33,3 +33,6 @@
 #define WINDOW_HEIGHT 600
 #endif
 
+#ifndef TARGET_FPS
+#define TARGET_FPS 60
+#endif

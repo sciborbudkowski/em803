@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Memory8080AccessInterface.h"
+#include "IMemory8080.h"
 #include "Calcs.h"
 
 #include <cstddef>
@@ -8,7 +8,7 @@
 #include <vector>
 #include <stdexcept>
 
-class Memory8080 : public Memory8080AccessInterface {
+class Memory8080 : public IMemory8080 {
     private:
         size_t size;
 
@@ -36,8 +36,6 @@ class Memory8080 : public Memory8080AccessInterface {
             memory[address] = value;
         }
 
-        size_t getSize() const { return size; };
-
         bool loadProgram(uint16_t address, const std::vector<uint8_t>& program) {
             if(address + program.size() > size) {
                 throw std::out_of_range("Memory8080::loadProgram(uint16_t, const std::vector<uint8_t>&): program out of range");
@@ -64,5 +62,13 @@ class Memory8080 : public Memory8080AccessInterface {
         }
 
         size_t getSize() const override { return size; }
+
+        bool loadProgram(uint16_t startAddress, std::vector<uint8_t>& buffer) override {
+            if(buffer.size() == 0) return false;
+            if(startAddress + buffer.size() > size) return false;
+
+            std::copy(buffer.begin(), buffer.end(), memory.begin() + startAddress);
+            return true;
+        }
         #pragma endregion
 };
