@@ -4,8 +4,8 @@
 #include "MachinesManager.h"
 #include "AddMachineDialog.h"
 #include "AssetLoader.h"
-#include "RaylibWrapper.h"
 #include "EmulatorWindow8080.h"
+#include "Terminal.h"
 
 #include <QApplication>
 #include <QMainWindow>

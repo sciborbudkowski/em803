@@ -1,10 +1,9 @@
 #pragma once
 
-#include <string>
-#include <stdexcept>
-#include <iostream>
+#include <raylib.h>
 
-#include "RaylibWrapper.h"
+#include <stdexcept>
+
 #include "DejaVuSansMonoFontData.h"
 
 namespace Helpers {

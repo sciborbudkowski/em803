@@ -1,9 +1,8 @@
 #pragma once
 
-#include "RaylibWrapper.h"
-
 #include <cstdint>
-#include <iostream>
+#include <cstdio>
+#include <raygui.h>
 
 class UIRegisterBox {
     public:

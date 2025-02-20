@@ -2,16 +2,11 @@
 #define RAYGUI_IMPLEMENTATION
 #define SRC_MAIN_CPP
 #endif
-#include "Properties.h"
+
 #include "MainWindow.h"
-#include "RaylibWrapper.h"
 
 #include <QApplication>
 #include <QMainWindow>
-
-extern "C" {
-    #include <raylib.h>
-}
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);

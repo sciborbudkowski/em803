@@ -1,13 +1,13 @@
 #pragma once
 
 #include <cstdarg>
-#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include <raylib.h>
+
 #include "ITerminalAccess.h"
-#include "RaylibWrapper.h"
 #include "Properties.h"
 
 class Terminal : public ITerminalAccess {

@@ -1,11 +1,8 @@
 #pragma once
 
-#include "RaylibWrapper.h"
 #include "raygui.h"
 #include "Properties.h"
 #include "CPU8080.h"
-#include "Memory8080.h"
-#include "IOPorts8080.h"
 #include "ITerminalAccess.h"
 #include "StartAddress8080Dialog.h"
 #include "UIRegiterBox.h"

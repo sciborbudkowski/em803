@@ -2,23 +2,21 @@
 
 #include "ALU8080.h"
 #include "Calcs.h"
-#include "BusyWait.h"
 #include "IOPorts8080.h"
 #include "Memory8080.h"
 #include "Registers8080.h"
-#include "Terminal.h"
 #include "ITerminalAccess.h"
 #include "Timings8080.h"
 #include "IRegisters8080.h"
 #include "IMemory8080.h"
+#ifdef DEBUG_SHOW_CONSOLE_MESSAGES
+#include "BusyWait.h"
+#endif
 
 #include <chrono>
 #include <cstdint>
 #include <deque>
-#include <iomanip>
 #include <iostream>
-#include <map>
-#include <thread>
 #include <vector>
 
 class CPU8080 final : public IRegisters8080, public IMemory8080 {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QString>
-#include <string>
 
 enum CPUType {
     I8080,
