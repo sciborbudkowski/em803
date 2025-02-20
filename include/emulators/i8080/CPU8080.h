@@ -79,7 +79,10 @@ class CPU8080 final : public IRegisters8080, public IMemory8080 {
         void setTurbo(bool value) { turbo = value; }
 
         void step() {
-            if(!running) return;
+            if(!running) {
+                std::cout << "System not running, should stop (possibly HLT)." << std::endl;
+                return;
+            }
 
             uint16_t opcode = mem.read(regs.PC++);
             decodeAndExecute(opcode);
@@ -1103,6 +1106,7 @@ class CPU8080 final : public IRegisters8080, public IMemory8080 {
                 std::cout << "Testing Intel 8080 CPU opcodes..." << std::endl;
                 for(uint16_t opcode=0; opcode<=0xFF; opcode++) {
                     regs.reset();
+                    mem.clear();
                     running = true;
                     mem.write(0x1000, opcode);
                     mem.write(0x1001, 0x00);
@@ -1116,8 +1120,11 @@ class CPU8080 final : public IRegisters8080, public IMemory8080 {
                     } catch(const std::exception& e) {
                         std::cout << "FAILED: " << e.what() << std::endl;
                     }
+                    running = false;
                 }
                 std::cout << "Testing opcodes done." << std::endl;
+                mem.write(0x1000, 0x76);
+                regs.PC = 0x1000;
             #endif
         }
 

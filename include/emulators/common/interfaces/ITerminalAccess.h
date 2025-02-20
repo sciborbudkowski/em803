@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <raylib.h>
 
 class ITerminalAccess {
     public:
@@ -22,4 +23,5 @@ class ITerminalAccess {
         virtual void setStatus(bool status) {}
         virtual bool getStatus() const { return false; }
         virtual void render() const {};
+        virtual void setFont(Font& font) {};
 };

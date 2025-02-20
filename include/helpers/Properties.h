@@ -20,17 +20,17 @@
 #define TERMINAL_CHARS_HEIGHT               25
 #endif
 #ifndef TERMINAL_PIXELS_WIDTH
-#define TERMINAL_PIXELS_WIDTH               800
+#define TERMINAL_PIXELS_WIDTH               600
 #endif
 #ifndef TERMINAL_PIXELS_HEIGHT
-#define TERMINAL_PIXELS_HEIGHT              600
+#define TERMINAL_PIXELS_HEIGHT              400
 #endif
 
 #ifndef WINDOW_WIDTH
 #define WINDOW_WIDTH                        800
 #endif
 #ifndef WINDOW_HEIGHT
-#define WINDOW_HEIGHT                       600
+#define WINDOW_HEIGHT                       480
 #endif
 
 #ifndef TARGET_FPS

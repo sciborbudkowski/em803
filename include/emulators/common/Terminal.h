@@ -25,8 +25,8 @@ class Terminal : public ITerminalAccess {
         Font font;
 
     public:
-        Terminal(Font& font, int widthChars = TERMINAL_CHARS_WIDTH, int heightChars = TERMINAL_CHARS_HEIGHT, int widthPixels = TERMINAL_PIXELS_WIDTH, int heightPixels = TERMINAL_PIXELS_HEIGHT)
-        : font(font), widthChars(widthChars), heightChars(heightChars), widthPixels(widthPixels), heightPixels(heightPixels) {
+        Terminal(int widthChars = TERMINAL_CHARS_WIDTH, int heightChars = TERMINAL_CHARS_HEIGHT, int widthPixels = TERMINAL_PIXELS_WIDTH, int heightPixels = TERMINAL_PIXELS_HEIGHT)
+        : widthChars(widthChars), heightChars(heightChars), widthPixels(widthPixels), heightPixels(heightPixels) {
             updateScalling();
             buffer.resize(heightChars, std::string(widthChars, ' '));
         }
@@ -119,15 +119,24 @@ class Terminal : public ITerminalAccess {
         bool getStatus() const override { return isBusy; }
 
         void render() const override {
-            float offsetX = 20, offsetY = 20;
+            float offsetX = 20.0f, offsetY = 20.0f;
 
             DrawRectangle(offsetX, offsetY, widthPixels, heightPixels, TERMINAL_BACKGROUND_COLOR);
-            for(int y=0; y<widthChars; y++) {
-                DrawTextEx(font, buffer[y].c_str(), Vector2{offsetX, offsetY + y*heightOfCharInPixels}, fontSize, 1, TERMINAL_FOREGROUND_COLOR);
+            for(int y=0; y<heightChars; y++) {
+                // DrawTextEx(font, buffer[y].c_str(), Vector2{offsetX, offsetY + y*heightOfCharInPixels}, fontSize, 2, TERMINAL_FOREGROUND_COLOR);
+                for(int x=0; x<widthChars; x++) {
+                    char ch = buffer[y][x];
+                    if(ch != ' ') {
+                        Vector2 pos = {static_cast<float>(x)*widthOfCharInPixels + offsetX, static_cast<float>(y)*heightOfCharInPixels + offsetY};
+                        DrawTextEx(font, std::string(1, ch).c_str(), pos, fontSize, 2, TERMINAL_FOREGROUND_COLOR);
+                    }
+                }
             }
 
-            DrawRectangle(offsetX + cursorX*widthOfCharInPixels, cursorY + cursorY*heightOfCharInPixels, widthOfCharInPixels, heightOfCharInPixels, TERMINAL_FOREGROUND_COLOR);
+            DrawRectangle(offsetX + cursorX*widthOfCharInPixels, offsetY + cursorY*heightOfCharInPixels, widthOfCharInPixels, heightOfCharInPixels, TERMINAL_FOREGROUND_COLOR);
         }
+
+        void setFont(Font& font) override { this->font = font; }
         #pragma endregion
     
     private:

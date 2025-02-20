@@ -3,7 +3,6 @@
 #include "MachineProfile.h"
 #include "MachinesManager.h"
 #include "AddMachineDialog.h"
-#include "AssetLoader.h"
 #include "EmulatorWindow8080.h"
 #include "Terminal.h"
 
@@ -16,6 +15,8 @@
 #include <QVector>
 
 #include <iostream>
+#include <qlistwidget.h>
+#include <qpushbutton.h>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -48,11 +49,11 @@ class MainWindow : public QMainWindow {
             connect(createButton, &QPushButton::clicked, this, &MainWindow::createMachine);
             connect(startButton, &QPushButton::clicked, this, &MainWindow::startMachine);
             connect(machinesList, &QListWidget::itemSelectionChanged, this, &MainWindow::updateButtons);
+            connect(machinesList, &QListWidget::itemDoubleClicked, this, &MainWindow::startMachine);
             connect(deleteButton, &QPushButton::clicked, this, &MainWindow::removeMachine);
             connect(exitAppButton, &QPushButton::clicked, this, &MainWindow::close);
 
             loadMachines();
-            loadAssets();
         }
 
         ~MainWindow() = default;
@@ -69,8 +70,6 @@ class MainWindow : public QMainWindow {
         MachinesManager machinesManager;
         
         QVector<MachineProfile> machines;
-
-        Font font;
 
     private slots:
         void createMachine() {
@@ -101,7 +100,7 @@ class MainWindow : public QMainWindow {
                 switch(selectedMachine.getProcessorType()) {
                     case CPUType::I8080: {
                         std::cout << "Creating emulator" << std::endl;
-                        Terminal term = Terminal(font);
+                        Terminal term = Terminal();
                         EmulatorWindow8080 emulator = EmulatorWindow8080(term, 0x10000);
                         
                         std::cout << "Show emulator window" << std::endl;
@@ -153,15 +152,6 @@ class MainWindow : public QMainWindow {
                 QListWidgetItem* item = new QListWidgetItem(machine.getMachineName());
                 item->setData(Qt::UserRole, i);
                 machinesList->addItem(item);
-            }
-        }
-
-        void loadAssets() {
-            try {
-                font = Helpers::AssetLoader::loadFont();
-            } catch(const std::runtime_error& e) {
-                QMessageBox::critical(nullptr, "Error", e.what());
-                return;
             }
         }
 };
