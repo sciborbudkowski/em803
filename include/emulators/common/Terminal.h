@@ -3,7 +3,6 @@
 #include "ITerminalAccess.h"
 #include "Properties.h"
 
-#include <GL/gl.h>
 #include <QtOpenGLWidgets/qopenglwidget.h>
 #include <qfont.h>
 #include <qopenglfunctions.h>

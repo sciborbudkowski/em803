@@ -1,8 +1,3 @@
-#ifndef SRC_MAIN_CPP
-#define RAYGUI_IMPLEMENTATION
-#define SRC_MAIN_CPP
-#endif
-
 #include "MainWindow.h"
 
 #include <QApplication>
@@ -18,7 +13,9 @@ int main(int argc, char *argv[]) {
         QMessageBox::warning(nullptr, "Error", "Error loading mono font.");
     } else {
         QString fontFamily = QFontDatabase::applicationFontFamilies(fontId).at(0);
-        app.setFont(QFont(fontFamily));
+        QFont font("DejaVuSansMono, Courier New, Monospace");
+        font.setStyleHint(QFont::Monospace);
+        app.setFont(font);
     }
 
     MainWindow w;

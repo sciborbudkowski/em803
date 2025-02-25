@@ -13,6 +13,7 @@
 #include <QTableWidgetItem>
 #include <QThread>
 
+#include "CPU8080.h"
 #include "CPUWorker.h"
 #include "CPUFactory.h"
 #include "RegisterViewWidget.h"
