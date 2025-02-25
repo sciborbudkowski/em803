@@ -1,11 +1,14 @@
 #pragma once
 
+#include <QObject>
+
 #include <string>
 #include <vector>
 #include <utility>
-#include <raylib.h>
 
-class ITerminalAccess {
+class ITerminalAccess : public QObject {
+    Q_OBJECT
+    
     public:
         virtual ~ITerminalAccess() = default;
 
@@ -22,6 +25,4 @@ class ITerminalAccess {
         virtual std::pair<int, int> getPixelDimension() const { return {0, 0}; }
         virtual void setStatus(bool status) {}
         virtual bool getStatus() const { return false; }
-        virtual void render() const {};
-        virtual void setFont(Font& font) {};
 };

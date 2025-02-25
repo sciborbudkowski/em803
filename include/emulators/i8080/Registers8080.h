@@ -1,16 +1,18 @@
 #pragma once
 
+#include "IRegisters8080.h"
+
 #include <cstdint>
 
-namespace i8080 {
-    enum FLAG {
-        CARRY = (1 << 0),
-        PARITY = (1 << 2),
-        AUX_CARRY = (1 << 4),
-        ZERO = (1 << 6),
-        SIGN = (1 << 7)
-    };
-};
+// namespace i8080 {
+//     enum FLAG {
+//         CARRY = (1 << 0),
+//         PARITY = (1 << 2),
+//         AUX_CARRY = (1 << 4),
+//         ZERO = (1 << 6),
+//         SIGN = (1 << 7)
+//     };
+// };
 
 struct Registers8080 {
     uint8_t A, B, C, D, E, H, L, F;

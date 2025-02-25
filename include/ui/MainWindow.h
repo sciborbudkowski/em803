@@ -3,8 +3,9 @@
 #include "MachineProfile.h"
 #include "MachinesManager.h"
 #include "AddMachineDialog.h"
-#include "EmulatorWindow8080.h"
+#include "WinEmu8080.h"
 #include "Terminal.h"
+#include "ITerminalAccess.h"
 
 #include <QApplication>
 #include <QMainWindow>
@@ -13,10 +14,10 @@
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QVector>
-
 #include <iostream>
 #include <qlistwidget.h>
 #include <qpushbutton.h>
+#include <qwidget.h>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -71,6 +72,8 @@ class MainWindow : public QMainWindow {
         
         QVector<MachineProfile> machines;
 
+        WinEmu8080 emulator;
+
     private slots:
         void createMachine() {
             AddMachineDialog dialog(this);
@@ -99,11 +102,10 @@ class MainWindow : public QMainWindow {
 
                 switch(selectedMachine.getProcessorType()) {
                     case CPUType::I8080: {
-                        std::cout << "Creating emulator" << std::endl;
-                        Terminal term = Terminal();
-                        EmulatorWindow8080 emulator = EmulatorWindow8080(term, 0x10000);
+                        // Terminal* term = new Terminal();
+                        // emulator = new QtEmulatorWindow8080(this, term, 0x10000);
+                        // emulator->run();
                         
-                        std::cout << "Show emulator window" << std::endl;
                         emulator.run();
                     }
                     break;

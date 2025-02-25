@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef DEBUG_SHOW_CONSOLE_MESSAGES
-#define DEBUG_SHOW_CONSOLE_MESSAGES         1
+#ifndef DEBUG_SHOW_CONSOLE_OPCODES
+#define DEBUG_SHOW_CONSOLE_OPCODES_NO
 #endif
 
 #ifndef TERMINAL_TEXT_FONT_PATH
@@ -9,9 +9,11 @@
 #endif
 #ifndef TERMINAL_BACKGROUND_COLOR
 #define TERMINAL_BACKGROUND_COLOR           DARKGRAY
+#define TERMINAL_BACKGROUND_QT_COLOR        QColor(33, 33, 33)
 #endif
 #ifndef TERMINAL_FOREGROUND_COLOR
 #define TERMINAL_FOREGROUND_COLOR           GREEN
+#define TERMINAL_FOREGROUND_QT_COLOR        QColor(33, 255, 33)
 #endif
 #ifndef TERMINAL_CHARS_WIDTH
 #define TERMINAL_CHARS_WIDTH                80
@@ -27,10 +29,10 @@
 #endif
 
 #ifndef WINDOW_WIDTH
-#define WINDOW_WIDTH                        800
+#define WINDOW_WIDTH                        810
 #endif
 #ifndef WINDOW_HEIGHT
-#define WINDOW_HEIGHT                       480
+#define WINDOW_HEIGHT                       750
 #endif
 
 #ifndef TARGET_FPS

@@ -3,7 +3,13 @@
 #include <cstdint>
 
 namespace i8080 {
-    enum FLAG;
+    enum FLAG {
+        CARRY = (1 << 0),
+        PARITY = (1 << 2),
+        AUX_CARRY = (1 << 4),
+        ZERO = (1 << 6),
+        SIGN = (1 << 7)
+    };
 };
 
 class IRegisters8080 {

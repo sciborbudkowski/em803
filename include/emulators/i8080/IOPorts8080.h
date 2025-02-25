@@ -2,21 +2,21 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <string_view>
 #include "ITerminalAccess.h"
 
 class IOPorts8080 {
     protected:
         std::array<uint8_t, 0x100> ports;
-        ITerminalAccess* terminal;
+        std::shared_ptr<ITerminalAccess> terminal;
 
     public:
-        IOPorts8080(ITerminalAccess* terminal) : terminal(terminal) { reset(); }
+        IOPorts8080(std::shared_ptr<ITerminalAccess> terminal) : terminal(terminal) { reset(); }
         ~IOPorts8080() = default;
 
         void reset() {
             ports.fill(0);
-            terminal->clear();
         }
 
         void out(uint8_t port, uint8_t value) {

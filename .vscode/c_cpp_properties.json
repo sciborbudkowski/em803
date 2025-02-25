@@ -4,7 +4,6 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/assets/embedded",
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/include/datastructs",
                 "${workspaceFolder}/include/emulators",
@@ -20,10 +19,12 @@
                 "${workspaceFolder}/include/raylib/ui",
                 "${workspaceFolder}/include/ui",
                 "${workspaceFolder}/include/ui/dialogs",
+                "${workspaceFolder}/include/ui/widgets",
                 "/usr/include/qt6",
                 "/usr/include/qt6/QtWidgets",
                 "/usr/include/qt6/QtGui",
                 "/usr/include/qt6/QtCore",
+                "/usr/include/qt6/QtOpenGLWidgets",
                 "/usr/lib/qt6/mkspecs/linux-g++"
             ],
             "defines": [
@@ -35,13 +36,13 @@
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
             "cppStandard": "c++23",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
         },
         {
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/assets/embedded",
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/include/datastructs",
                 "${workspaceFolder}/include/emulators",
@@ -57,6 +58,7 @@
                 "${workspaceFolder}/include/raylib/ui",
                 "${workspaceFolder}/include/ui",
                 "${workspaceFolder}/include/ui/dialogs",
+                "${workspaceFolder}/include/ui/widgets",
                 "/usr/local/opt/qt@6/include/QtWidgets",
                 "/usr/local/opt/qt@6/include/QtCore",
                 "/usr/local/opt/qt@6/include/QtGui",

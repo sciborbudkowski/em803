@@ -41,7 +41,7 @@ set(CMAKE_AUTOMOC ON)
 set(RALIB_MODULE_VULKAN OFF CACHE BOOL "Disable Vulkan support" FORCE)
 
 # Find dependencies
-find_package(Qt6 COMPONENTS Widgets Core Gui REQUIRED)
+find_package(Qt6 COMPONENTS Widgets Core Gui OpenGLWidgets REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(RAYLIB REQUIRED raylib)
@@ -49,7 +49,7 @@ pkg_check_modules(RAYLIB REQUIRED raylib)
 # Find headers and sources
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 file(GLOB_RECURSE HEADER_FILES include/*.h)
-file(GLOB_RECURSE DATA_FILES assets/*.h)
+#file(GLOB_RECURSE DATA_FILES assets/*.h)
 
 set(INCLUDE_DIRS "")
 foreach(header_file ${HEADER_FILES})
@@ -58,24 +58,27 @@ foreach(header_file ${HEADER_FILES})
 endforeach()
 list(REMOVE_DUPLICATES INCLUDE_DIRS)
 
-set(DATA_DIRS "")
-foreach(data_file ${DATA_FILES})
-    get_filename_component(dir ${data_file} DIRECTORY)
-    list(APPEND DATA_DIRS ${dir})
-endforeach()
-list(REMOVE_DUPLICATES DATA_DIRS)
+# set(DATA_DIRS "")
+# foreach(data_file ${DATA_FILES})
+#     get_filename_component(dir ${data_file} DIRECTORY)
+#     list(APPEND DATA_DIRS ${dir})
+# endforeach()
+# list(REMOVE_DUPLICATES DATA_DIRS)
 
-#message(STATUS "Found source files (*.cpp): ${SOURCE_FILES}")
-#message(STATUS "Found header files (*.h): ${HEADER_FILES}")
+#message(STATUS "#####→ Found source files (*.cpp): ${SOURCE_FILES}")
+#message(STATUS "#####==== Found header files (*.h): ${HEADER_FILES}")
 #message(STATUS "Found include directories: ${INCLUDE_DIRS}")
-message(STATUS "Found data files: ${DATA_DIRS}")
+#message(STATUS "#####---- Found data files: ${DATA_DIRS}")
+
+qt6_add_resources(RESOURCES assets/resources.qrc)
 
 qt_add_executable(${PROJECT_NAME}
     ${SOURCE_FILES}
     ${HEADER_FILES}
-    ${DATA_FILES}
+#    ${DATA_FILES}
     ${UI_HEADERS}
     ${MOC_SOURCES}
+    ${RESOURCES}
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE
@@ -93,10 +96,12 @@ target_link_directories(${PROJECT_NAME} PRIVATE
     ${RAYLIB_LIBRARY_DIRS}
 )
 
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Widgets
     Qt6::Core
     Qt6::Gui
+    Qt6::OpenGLWidgets
     nlohmann_json::nlohmann_json
     ${RAYLIB_LIBRARIES}
 )

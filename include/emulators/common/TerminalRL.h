@@ -1,47 +1,37 @@
 #pragma once
 
+#include <cstdarg>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <raylib.h>
+
 #include "ITerminalAccess.h"
 #include "Properties.h"
 
-#include <GL/gl.h>
-#include <QtOpenGLWidgets/qopenglwidget.h>
-#include <qfont.h>
-#include <qopenglfunctions.h>
-#include <qpainter.h>
-#include <qtimer.h>
-#include <qtmetamacros.h>
-#include <qwidget.h>
-#include <string>
-#include <vector>
-
-class Terminal : public ITerminalAccess {
-    Q_OBJECT
-
-    private:
-        int widthChars, heightChars;
-        int widthPixels, heightPixels;
+class TerminalRL : public ITerminalAccess {
+    protected:
+        int widthChars, widthPixels, widthOfCharInPixels;
+        int heightChars, heightPixels, heightOfCharInPixels;
         int cursorX, cursorY;
-        bool isBusy;
         char lastChar;
-
+        bool isBusy;
+        float fontSize;
+        
         std::vector<std::string> buffer;
         std::string lastLine;
 
+        Font font;
+
     public:
-        explicit Terminal(int widthChars = TERMINAL_CHARS_WIDTH,
-                          int heightChars = TERMINAL_CHARS_HEIGHT,
-                          int widthPixels = TERMINAL_PIXELS_WIDTH,
-                          int heightPixels = TERMINAL_PIXELS_HEIGHT
-                         )
-        : widthChars(widthChars), heightChars(heightChars),
-          widthPixels(widthPixels), heightPixels(heightPixels),
-          isBusy(false) {
-            cursorX = cursorY = 0;
-            lastChar = '\0';
-
+        TerminalRL(int widthChars = TERMINAL_CHARS_WIDTH, int heightChars = TERMINAL_CHARS_HEIGHT, int widthPixels = TERMINAL_PIXELS_WIDTH, int heightPixels = TERMINAL_PIXELS_HEIGHT)
+        : widthChars(widthChars), heightChars(heightChars), widthPixels(widthPixels), heightPixels(heightPixels) {
+            updateScalling();
             buffer.resize(heightChars, std::string(widthChars, ' '));
-          }
+        }
 
+        #pragma region --- ITerminalAccess methods ---
         char inputChar() const override { return lastChar; }
 
         void outputChar(char ch) override {
@@ -101,7 +91,16 @@ class Terminal : public ITerminalAccess {
             }
             isBusy = false;
         }
-
+        
+        void clear() override {
+            isBusy = true;
+            buffer.clear();
+            buffer.resize(heightChars, std::string(widthChars, ' '));
+            cursorX = 0;
+            cursorY = 0;
+            isBusy = false;
+        }
+        
         std::vector<std::string> getBuffer() const override { return buffer; }
 
         std::pair<int, int> getCursorPosition() const override { return std::pair<int, int>(cursorX, cursorY); }
@@ -136,4 +135,14 @@ class Terminal : public ITerminalAccess {
 
         //     DrawRectangle(offsetX + cursorX*widthOfCharInPixels, offsetY + cursorY*heightOfCharInPixels, widthOfCharInPixels, heightOfCharInPixels, TERMINAL_FOREGROUND_COLOR);
         // }
+
+        //void setFont(Font& font) override { this->font = font; }
+        #pragma endregion
+    
+    private:
+        void updateScalling() {
+            widthOfCharInPixels = widthPixels / widthChars;
+            heightOfCharInPixels = heightPixels / heightChars;
+            fontSize = static_cast<float>(heightOfCharInPixels);
+        }
 };

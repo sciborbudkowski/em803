@@ -6,12 +6,20 @@
 #include "MainWindow.h"
 
 #include <QApplication>
+#include <QFontDatabase>
+#include <QMessageBox>
 #include <QMainWindow>
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
-    SetTraceLogLevel(LOG_WARNING);
+    int fontId = QFontDatabase::addApplicationFont(":/assets/fonts/DejaVuSansMono.ttf");
+    if(fontId == -1) {
+        QMessageBox::warning(nullptr, "Error", "Error loading mono font.");
+    } else {
+        QString fontFamily = QFontDatabase::applicationFontFamilies(fontId).at(0);
+        app.setFont(QFont(fontFamily));
+    }
 
     MainWindow w;
     w.setWindowTitle("em80 - Machine Manager");

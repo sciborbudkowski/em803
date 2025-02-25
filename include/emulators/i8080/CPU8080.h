@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ICPU.h"
 #include "ALU8080.h"
 #include "Calcs.h"
 #include "IOPorts8080.h"
@@ -13,19 +14,22 @@
 #include "BusyWait.h"
 #endif
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <deque>
+#include <memory>
 #include <iostream>
 #include <vector>
 
-class CPU8080 final : public IRegisters8080, public IMemory8080 {
+class CPU8080 final : public IRegisters8080, public IMemory8080, public ICPU {
     private:
         Registers8080 regs;
         Memory8080 mem;
         IOPorts8080 ports;
+        std::shared_ptr<ITerminalAccess> terminal;
 
-        bool interruptsEnabled, running, turbo;
+        std::atomic<bool> interruptsEnabled, running, turbo;
 
         const uint16_t CPM_CBIOS = 0xEA00;
         const uint16_t CPM_BDOS  = 0xDC00;
@@ -49,8 +53,8 @@ class CPU8080 final : public IRegisters8080, public IMemory8080 {
         }
 
     public:
-        CPU8080(ITerminalAccess& terminal, size_t memorySize = Memory8080::DEFAULT_SIZE)
-        : ports(&terminal), mem(memorySize) {
+        CPU8080(std::shared_ptr<ITerminalAccess> terminal, size_t memorySize = Memory8080::DEFAULT_SIZE)
+        : terminal(terminal), mem(memorySize), ports(terminal) {
             interruptsEnabled = false;
             running = false;
             turbo = false;
@@ -58,13 +62,24 @@ class CPU8080 final : public IRegisters8080, public IMemory8080 {
         ~CPU8080() = default;
 
         bool isRunning() const { return running; }
-        void start() {
-            running = true;
-            while(running) step();
-        }
-        void stop() { running = false; }
 
-        void reset() {
+        #pragma region --- ICPU methods ---
+        void start() override {
+            running = true;
+            while(running) {
+                step();
+                #ifdef DEBUG_SHOW_CONSOLE_OPCODES
+                    std::cout << ".";
+                #endif
+            }
+            #ifdef DEBUG_SHOW_CONSOLE_OPCODES
+                std::cout << std::endl;
+            #endif
+        }
+
+        void stop() override { running = false; std::cout << "------------- STOP!!! ------------" << std::endl; }
+
+        void reset() override {
             regs.reset();
             mem.clear();
             ports.reset();
@@ -74,6 +89,7 @@ class CPU8080 final : public IRegisters8080, public IMemory8080 {
 
             setupMeasure();
         }
+        #pragma endregion
 
         bool isTurbo() const { return turbo; }
         void setTurbo(bool value) { turbo = value; }
@@ -86,13 +102,6 @@ class CPU8080 final : public IRegisters8080, public IMemory8080 {
 
             uint16_t opcode = mem.read(regs.PC++);
             decodeAndExecute(opcode);
-        }
-
-        void run() {
-            running = true;
-            while(running) {
-                step();
-            }
         }
 
         void push(int16_t value) {
@@ -1029,7 +1038,7 @@ class CPU8080 final : public IRegisters8080, public IMemory8080 {
             auto endTime = std::chrono::high_resolution_clock::now();
             lastCycleTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime).count();
 
-            #ifdef DEBUG_SHOW_CONSOLE_MESSAGES
+            #ifdef DEBUG_SHOW_CONSOLE_OPCODES
                 bool notifyCycleTooLong = false, notifyCycleTooShort = false, notifyCycleEqual = false;
                 int executeTime = lastCycleTime - timeInst;
 
