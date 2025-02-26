@@ -58,6 +58,11 @@ class CPU8080 final : public IRegisters8080, public IMemory8080, public ICPU {
             interruptsEnabled = false;
             running = false;
             turbo = false;
+
+            terminal->outputString(welcomeMessage);
+            terminal->setCursorPosition({0, 2});
+            terminal->outputString("Hello, world!");
+            terminal->setCursorPosition({0, 3});
         }
         ~CPU8080() = default;
 
@@ -77,7 +82,7 @@ class CPU8080 final : public IRegisters8080, public IMemory8080, public ICPU {
             #endif
         }
 
-        void stop() override { running = false; std::cout << "------------- STOP!!! ------------" << std::endl; }
+        void stop() override { running = false; }
 
         void reset() override {
             regs.reset();

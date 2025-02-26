@@ -23,13 +23,6 @@ class CPUWorker : public QObject {
             isRunning = true;
             cpu->start();
             emit running();
-
-            // while(isRunning.load()) {
-            //     cpu->start();
-            //     QThread::msleep(1);
-            // }
-
-            // emit stopped();
         }
 
         void stop() {

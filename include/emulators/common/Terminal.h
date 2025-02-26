@@ -118,21 +118,5 @@ class Terminal : public ITerminalAccess {
 
         bool getStatus() const override { return isBusy; }
 
-        // void render() const override {
-        //     float offsetX = 20.0f, offsetY = 20.0f;
-
-        //     DrawRectangle(offsetX, offsetY, widthPixels, heightPixels, TERMINAL_BACKGROUND_COLOR);
-        //     for(int y=0; y<heightChars; y++) {
-        //         // DrawTextEx(font, buffer[y].c_str(), Vector2{offsetX, offsetY + y*heightOfCharInPixels}, fontSize, 2, TERMINAL_FOREGROUND_COLOR);
-        //         for(int x=0; x<widthChars; x++) {
-        //             char ch = buffer[y][x];
-        //             if(ch != ' ') {
-        //                 Vector2 pos = {static_cast<float>(x)*widthOfCharInPixels + offsetX, static_cast<float>(y)*heightOfCharInPixels + offsetY};
-        //                 DrawTextEx(font, std::string(1, ch).c_str(), pos, fontSize, 2, TERMINAL_FOREGROUND_COLOR);
-        //             }
-        //         }
-        //     }
-
-        //     DrawRectangle(offsetX + cursorX*widthOfCharInPixels, offsetY + cursorY*heightOfCharInPixels, widthOfCharInPixels, heightOfCharInPixels, TERMINAL_FOREGROUND_COLOR);
-        // }
+        void setLastChar(char ch) override { lastChar = ch; }
 };

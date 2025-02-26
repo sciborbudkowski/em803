@@ -75,6 +75,8 @@ class WinEmu8080 : public QMainWindow {
             TextTerminalWidget* termWidget = new TextTerminalWidget(terminal, centralWidget);
             termWidget->setMinimumSize(TERMINAL_PIXELS_WIDTH, TERMINAL_PIXELS_HEIGHT);
             termWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+            termWidget->setFocus();
+
             QGroupBox* groupRegisters = new QGroupBox("REGISTERS", centralWidget);
             groupRegisters->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
             groupRegisters->setFixedSize(150, 200);
@@ -183,25 +185,6 @@ class WinEmu8080 : public QMainWindow {
                 setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
 
                 prepareUi();
-
-                // QWidget* centralWidget = new QWidget(this);
-                // QVBoxLayout* layout = new QVBoxLayout(centralWidget);
-
-                // TextTerminalWidget* termWidget = new TextTerminalWidget(terminal, centralWidget);
-                // layout->addWidget(termWidget);
-
-                // QHBoxLayout* buttonsLayout = new QHBoxLayout();
-                // layout->addLayout(buttonsLayout);
-
-                // QPushButton* startButton = new QPushButton("START");
-                // QPushButton *stopButton = new QPushButton("STOP");
-                // buttonsLayout->addWidget(startButton);
-                // buttonsLayout->addWidget(stopButton);
-
-                // connect(stopButton, &QPushButton::clicked, this, [this]() { cpu->stop(); });
-                // connect(startButton, &QPushButton::clicked, this, [this]() { run(); });
-
-                // setCentralWidget(centralWidget);
             } catch(const std::exception& e) {
                 QMessageBox::critical(this, "Error", QString("Failed to start emulator: %1").arg(e.what()));
                 throw;
